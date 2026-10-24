@@ -1,0 +1,94 @@
+name: Bug report
+description: Report a reproducible problem with Notebook Power Monitor.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please redact usernames, machine names and local paths before posting.
+        Security issues should follow SECURITY.md instead of this form.
+
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown in the data-source dialog, for example 1.0.2.
+      placeholder: "1.0.2"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: distribution
+    attributes:
+      label: How are you running it?
+      options:
+        - Release ZIP (EXE)
+        - From source
+        - Demo mode
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Run `winver` and paste the version and build.
+      placeholder: "Windows 11 23H2, 22631.xxxx"
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: CPU / GPU / laptop model
+      placeholder: "Intel Core Ultra 9 275HX, RTX 5080 Laptop, MECHREVO YAOSHI"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A minimal sequence that reliably triggers the issue.
+      placeholder: |
+        1. Start the app on battery
+        2. Wait for the GPU to sleep
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the exact card text or status, not only a screenshot.
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Open “数据源与诊断” and click “复制诊断”, then paste the text here.
+      render: text
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log lines
+      description: From `%APPDATA%\NotebookPowerMonitor\monitor.log` or the path shown in the dialog.
+      render: text
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag images here if they help. Remove serial numbers and personal paths.

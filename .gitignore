@@ -1,0 +1,47 @@
+# Byte-compiled / caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build output
+build/
+dist/
+release/
+*.spec
+*.log
+
+# Local tools
+.tools/
+.tmp-wheel/
+
+# Runtime data
+NotebookPowerMonitor-data/
+config.json
+monitor.log
+*.log.*
+
+# Local tooling
+.idea/
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Installers / archives
+*.exe
+*.msi
+*.zip
+*.7z

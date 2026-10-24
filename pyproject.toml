@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "notebook-power-monitor"
+dynamic = ["version"]
+description = "Native Windows laptop power, battery and background-process monitor."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Notebook Power Monitor contributors" }]
+keywords = [
+    "windows",
+    "laptop",
+    "battery",
+    "power-monitor",
+    "rapl",
+    "nvidia",
+    "nvml",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Hardware",
+    "Topic :: System :: Monitoring",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "Pillow>=10.0",
+    "pystray>=0.19.5",
+    "pywin32>=306; sys_platform == 'win32'",
+    "WMI>=1.5.1; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+dev = ["pyinstaller>=6.10", "ruff>=0.9"]
+
+[project.gui-scripts]
+notebook-power-monitor = "notebook_power_monitor.main:main"
+
+[tool.setuptools]
+packages = ["notebook_power_monitor"]
+
+[tool.setuptools.dynamic]
+version = { attr = "notebook_power_monitor.__version__" }
+
+[tool.setuptools.package-data]
+notebook_power_monitor = ["assets/*.ico", "assets/*.png"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = ["build", "dist", "release"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

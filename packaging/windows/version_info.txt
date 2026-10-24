@@ -1,0 +1,30 @@
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 0, 2, 0),
+    prodvers=(1, 0, 2, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo([
+      StringTable(
+        '080404b0',
+        [
+          StringStruct('CompanyName', 'Notebook Power Monitor'),
+          StringStruct('FileDescription', '电量哨兵 · 笔记本能耗监控'),
+          StringStruct('FileVersion', '1.0.2'),
+          StringStruct('InternalName', 'NotebookPowerMonitor'),
+          StringStruct('LegalCopyright', 'Copyright (c) 2026'),
+          StringStruct('OriginalFilename', '电量哨兵.exe'),
+          StringStruct('ProductName', '电量哨兵'),
+          StringStruct('ProductVersion', '1.0.2')
+        ]
+      )
+    ]),
+    VarFileInfo([VarStruct('Translation', [2052, 1200])])
+  ]
+)
