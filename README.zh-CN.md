@@ -2,13 +2,14 @@
 
 [English](README.md) | **简体中文**
 
+[![CI](https://github.com/oucdc/Power-Sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/oucdc/Power-Sentinel/actions/workflows/ci.yml)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 面向 Windows 游戏本 / 高性能笔记本的实时能耗监控工具：深色中文界面、顶部悬浮条、系统托盘，双击即可运行。
 
-程序只使用真实硬件计数器：CPU 功耗来自 Windows RAPL，GPU 功耗/温度来自 NVIDIA NVML，电池来自 WMI/ACPI；整机功耗只取 Windows Power Meter 或电池放电实测，绝不用 CPU+GPU 求和冒充。
+CPU 功耗来自 Windows RAPL，GPU 功耗/温度来自 NVIDIA NVML，电池来自 WMI/ACPI。不插电时总功耗使用电池放电实测；插电时使用 **CPU+GPU 双烤合计**，界面明确标注为“计算值”，不冒充墙插整机输入功率。
 
 ![仪表盘](docs/images/dashboard.png)
 
@@ -16,6 +17,7 @@
 
 - **CPU 功耗**：Windows RAPL `Energy Meter(RAPL_Package0_PKG)`。
 - **GPU 功耗、温度、占用率**：NVIDIA NVML，与 NVIDIA App 同源。
+- **总功耗**：不插电用电池放电实测；插电用 CPU+GPU 双烤合计，界面标注“计算值”。
 - **电池续航**：用当前剩余 Wh 和实测放电功率估算，不是只看百分比。
 - **后台进程活动**：排除 `System Idle Process` 和前台进程，每个进程上限 100%，后台总计不超过全机活动 CPU。
 - **主窗口 + 置顶悬浮条 + 托盘**。
@@ -35,7 +37,8 @@
 要求：Windows 10/11、64 位 Python 3.10+；GPU 数据需要 NVIDIA 驱动。克隆或下载仓库后，在仓库根目录运行：
 
 ```powershell
-cd notebook-power-monitor
+git clone https://github.com/oucdc/Power-Sentinel.git
+cd Power-Sentinel
 py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
@@ -64,19 +67,19 @@ python .\scripts\package_release.py
 |---|---|---|
 | CPU 功耗 | Windows RAPL / PDH 能量计数器 | 显示“不可用”并说明原因 |
 | GPU 功耗/温度 | NVIDIA NVML | 独显休眠时整个 GPU 卡片不可用 |
-| 整机功耗 | Windows Power Meter，或电池放电实测 | 显示“不可用”，绝不用 CPU+GPU 求和 |
+| 总功耗 | 插电：CPU+GPU 双烤合计（计算值）；不插电：电池放电实测 | CPU/GPU 任一功率缺失且无 Power Meter 时显示“不可用” |
 | CPU 温度 | 原生接口无可靠来源 | `—` |
 | GPU 温度 | NVIDIA NVML | `—` |
 | 电池 | WMI `root\wmi:BatteryStatus` + ACPI 电池信息 | 只显示百分比，不伪造功率 |
 | 后台 CPU | `GetSystemTimes` / `GetProcessTimes` | 不可用时显示占位，不编造数值 |
 
-### 为什么插电时整机功耗经常不可用？
+### 总功耗怎么算？
 
-很多笔记本（包括部分游戏本）不会向 Windows 暴露整机输入功率传感器，Windows Power Meter 可能一直返回 0。此时插电状态没有真实整机功耗来源。
+**不插电**：使用电池放电实测（直流侧），保留原功能。
 
-- 拔掉电源后，整机功耗切换为**电池放电实测**（直流侧）。
-- 程序不会用 CPU+GPU 相加：那会漏掉屏幕、内存、硬盘、风扇、VRM 和供电损耗。
-- 要测交流输入功率，墙插功率计仍然是正确工具。
+**插电**：显示 `CPU 功耗 + GPU 功耗`，标题为 **双烤功耗合计**，并标注 **计算值**。这是双烤时的部件合计，不含屏幕、内存、硬盘、风扇、VRM 和供电损耗，因此不是墙插整机输入功率，不能直接和插座功率计对比。
+
+插电时如果 CPU 或 GPU 其中一个功率不可用，会回退到真实的 Windows Power Meter 读数；两者都没有时明确显示不可用。
 
 CPU 温度被刻意留空。Windows 没有可靠的原生封装温度接口，程序不会显示一个看起来合理但可能错误的数值。
 
@@ -116,7 +119,7 @@ tests/                    单元测试
 ## 已知限制
 
 - 仅支持 Windows；界面目前为简体中文。
-- 插电整机功耗需要硬件传感器或墙插功率计。
+- 插电总功耗是 CPU+GPU 双烤计算值，不是墙插输入功率；真实交流功率仍需墙插功率计。
 - CPU 温度没有可信的原生来源，因此不显示。
 - 电池放电功率依赖固件/WMI 支持。
 - 本工具显示传感器读数，不是经过校准的实验室功率计。

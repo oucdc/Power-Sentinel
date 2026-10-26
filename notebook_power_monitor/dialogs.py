@@ -137,7 +137,7 @@ class SourceDialog:
         row.pack(fill="x")
         tk.Label(
             row,
-            text="整机功耗来源",
+            text="总功耗来源",
             bg=CARD,
             fg=TEXT_SOFT,
             font=theme.font(10.5, weight="bold"),
@@ -366,10 +366,15 @@ class SourceDialog:
     def build_diag(self) -> str:
         s = self.snap
         total_state = "可用" if s.total_w is not None else "不可用"
+        kind_label = {
+            "computed": "CPU+GPU 计算值",
+            "battery": "电池放电实测",
+            "meter": "Power Meter 实测",
+        }.get(s.total_kind, "—")
         lines = [
             f"{APP_NAME} {APP_VERSION} · {fmt_clock(s.timestamp)}",
             "数据模式: 原生传感器（已移除 HWiNFO 连接）",
-            f"整机功耗: {total_state} · 来源={s.total_source or '—'}",
+            f"总功耗: {total_state} · 来源={s.total_source or '—'} · 类型={kind_label}",
             f"  详情: {s.total_reason or s.total_label or '—'}",
             f"CPU: {fmt_power(s.cpu.power_w)} W · 来源={s.cpu.power_source or '不可用'}",
             "  CPU 温度: 原生来源不提供",
@@ -410,25 +415,33 @@ class SourceDialog:
         if s.total_w is None:
             self.total_value.configure(text="—", fg=DIM)
             self.total_unit.configure(fg=DIM)
-            self.total_source.configure(text="无真实整机功耗传感器", fg=AMBER)
+            self.total_source.configure(text="无可用功耗来源", fg=AMBER)
             self.total_badge.configure(text="不可用", fg=AMBER, bg="#392B18")
             self.total_detail.configure(
-                text=s.total_reason or "插电时没有可用的整机功耗传感器。",
+                text=s.total_reason or "当前没有可用的功耗来源。",
                 fg=MUTED,
             )
         else:
             self.total_value.configure(text=f"{fmt_power(s.total_w)}", fg=TEXT)
             self.total_unit.configure(fg=MUTED)
-            self.total_source.configure(text=s.total_source or "原生实测", fg=CYAN)
-            self.total_badge.configure(text="实测", fg=GREEN, bg="#16352C")
-            self.total_detail.configure(
-                text=(
-                    "电池放电实测 · 电池端直流功率"
-                    if "电池放电" in s.total_source
-                    else "Windows Power Meter 硬件计数器 · 非 CPU+GPU 求和"
-                ),
-                fg=MUTED,
-            )
+            if s.total_kind == "computed":
+                self.total_source.configure(text="CPU+GPU 双烤合计", fg=AMBER)
+                self.total_badge.configure(text="计算值", fg=AMBER, bg="#392B18")
+                self.total_detail.configure(
+                    text=s.total_reason or "CPU + GPU 合计，不含屏幕、内存、硬盘、风扇和供电损耗。",
+                    fg=MUTED,
+                )
+            else:
+                self.total_source.configure(text=s.total_source or "原生实测", fg=CYAN)
+                self.total_badge.configure(text="实测", fg=GREEN, bg="#16352C")
+                self.total_detail.configure(
+                    text=(
+                        "电池放电实测 · 电池端直流功率"
+                        if s.total_kind == "battery"
+                        else "Windows Power Meter 硬件计数器 · 非 CPU+GPU 求和"
+                    ),
+                    fg=MUTED,
+                )
 
         nv = s.nvml
         self.nv_title.configure(fg=GREEN if nv.state == "ok" else AMBER)

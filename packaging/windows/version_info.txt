@@ -1,7 +1,7 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 0, 2, 0),
-    prodvers=(1, 0, 2, 0),
+    filevers=(1, 1, 0, 0),
+    prodvers=(1, 1, 0, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -16,12 +16,12 @@ VSVersionInfo(
         [
           StringStruct('CompanyName', 'Notebook Power Monitor'),
           StringStruct('FileDescription', '电量哨兵 · 笔记本能耗监控'),
-          StringStruct('FileVersion', '1.0.2'),
+          StringStruct('FileVersion', '1.1.0'),
           StringStruct('InternalName', 'NotebookPowerMonitor'),
           StringStruct('LegalCopyright', 'Copyright (c) 2026'),
           StringStruct('OriginalFilename', '电量哨兵.exe'),
           StringStruct('ProductName', '电量哨兵'),
-          StringStruct('ProductVersion', '1.0.2')
+          StringStruct('ProductVersion', '1.1.0')
         ]
       )
     ]),

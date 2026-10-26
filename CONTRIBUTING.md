@@ -40,8 +40,8 @@ NVIDIA hardware or a graphical desktop.
 
 - Keep the UI in Simplified Chinese and code/comments in English.
 - Use type hints for new public functions and dataclasses.
-- Prefer native Windows APIs and existing data models; do not add a CPU+GPU sum as a substitute for
-  total system power.
+- Prefer native Windows APIs and existing data models. A CPU+GPU total is allowed on AC only when it
+  is clearly labelled as a calculated dual-load sum, never as wall input power.
 - Preserve the “unknown is unavailable” rule: never display a fabricated or stale sensor value.
 - Keep new dependencies minimal and justify them in the pull request.
 - Follow the existing module boundaries: acquisition in `battery.py` / `gpu.py` / `rapl.py`, merging in

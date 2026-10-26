@@ -155,6 +155,7 @@ class TrayController:
             title = "电量哨兵 · 演示模式"
         else:
             total = f"{fmt_power(snap.total_w, 1)} W" if snap.total_w is not None else "—"
+            total_caption = "双烤" if snap.total_kind == "computed" else "整机"
             cpu = f"{fmt_power(snap.cpu.power_w, 1)} W" if snap.cpu.power_w is not None else "—"
             gpu = f"{fmt_power(snap.gpu.power_w, 1)} W" if snap.gpu.power_w is not None else "—"
             percent = f"{snap.battery.percent:.0f}%" if snap.battery.percent is not None else "—"
@@ -165,7 +166,9 @@ class TrayController:
                 runtime = "充电"
             elif snap.battery.ac_online:
                 runtime = "AC"
-            title = f"整机 {total} | CPU {cpu} | GPU {gpu}\n电量 {percent} | 续航 {runtime}"
+            title = (
+                f"{total_caption} {total} | CPU {cpu} | GPU {gpu}\n电量 {percent} | 续航 {runtime}"
+            )
         try:
             self.icon.title = title[:127]
         except Exception:

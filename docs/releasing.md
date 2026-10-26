@@ -57,7 +57,7 @@ Get-FileHash .\release\电量哨兵-vX.Y.Z.zip -Algorithm SHA256
 
 ## GitHub release
 
-- Tag: `vX.Y.Z` (for example `v1.0.2`).
+- Tag: `vX.Y.Z` (for example `v1.1.0`).
 - Title: `电量哨兵 vX.Y.Z`.
 - Attach only the release ZIP, not `build/`, `dist/` or logs.
 - Paste the relevant `CHANGELOG.md` section into the release notes.

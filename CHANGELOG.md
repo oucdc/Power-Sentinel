@@ -7,6 +7,22 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-26
+
+### Added
+
+- AC total power now shows the explicit CPU+GPU dual-load sum (“双烤功耗合计”), labelled as a
+  calculated value.
+- Total power provenance is stored in `Snapshot.total_kind` and rendered in the dashboard, floating
+  bar, tray tooltip and diagnostics.
+
+### Changed
+
+- On battery, total power continues to use measured battery discharge.
+- If either CPU or GPU power is unavailable on AC, the app falls back to a real Windows Power Meter
+  reading, otherwise the total is explicitly unavailable.
+- README, architecture and contribution docs now describe the computed AC total and its limits.
+
 ## [1.0.2] - 2026-10-24
 
 ### Changed

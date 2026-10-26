@@ -261,13 +261,14 @@ class TotalCard(Card):
 
         title_row = tk.Frame(inner, bg=CARD)
         title_row.pack(fill="x")
-        tk.Label(
+        self.title_label = tk.Label(
             title_row,
             text="整机功耗",
             bg=CARD,
             fg=TEXT_SOFT,
             font=theme.font(12, weight="bold"),
-        ).pack(side="left")
+        )
+        self.title_label.pack(side="left")
         self.mode_badge = Badge(title_row, theme, "仅实测", tone="muted")
         self.mode_badge.pack(side="right")
         tk.Label(
@@ -338,20 +339,23 @@ class TotalCard(Card):
             self.value_label.configure(text=fmt_power(total, 1), fg=TEXT)
             self.unit_label.configure(fg=MUTED)
         if stale:
+            self.title_label.configure(text="整机功耗")
             self.mode_badge.set("数据过期", "red")
             self.source_badge.set("已隐藏", "red")
             self.reason_label.configure(
-                text="采集线程暂时无响应，整机读数已隐藏，不会显示旧值。", fg=RED
+                text="采集线程暂时无响应，功耗读数已隐藏，不会显示旧值。", fg=RED
             )
             self.spark.set_values([])
             return
         if snap.demo:
+            self.title_label.configure(text="整机功耗")
             self.mode_badge.set("演示", "amber")
             self.source_badge.set("演示数据", "amber")
             self.reason_label.configure(text="仅用于界面验收，此数字不是真实传感器读数。", fg=AMBER)
             self.spark.set_values(history)
             return
         if snap.total_w is None:
+            self.title_label.configure(text="整机功耗")
             self.mode_badge.set("不可用", "muted")
             self.source_badge.set("无真实来源", "muted")
             self.reason_label.configure(
@@ -359,14 +363,25 @@ class TotalCard(Card):
             )
             self.spark.set_values([])
             return
-        if "电池放电" in snap.total_source:
+        if snap.total_kind == "computed":
+            self.title_label.configure(text="双烤功耗合计")
+            self.mode_badge.set("计算值", "amber")
+            self.source_badge.set("CPU+GPU 合计", "amber")
+            self.reason_label.configure(
+                text=snap.total_reason
+                or "CPU + GPU 双烤合计，不含屏幕、内存、硬盘、风扇和供电损耗。",
+                fg=MUTED,
+            )
+        elif snap.total_kind == "battery":
+            self.title_label.configure(text="整机功耗 · 电池")
             self.mode_badge.set("实测 · 电池端", "amber")
             self.source_badge.set("电池放电实测", "amber")
             self.reason_label.configure(
-                text="电池放电功率实测，属于系统直流侧读数；插电后需要 Windows Power Meter 提供总功耗。",
+                text="电池放电功率实测，属于系统直流侧读数。",
                 fg=MUTED,
             )
-        elif "Power Meter" in snap.total_source:
+        elif snap.total_kind == "meter":
+            self.title_label.configure(text="整机功耗")
             self.mode_badge.set("真实传感器", "cyan")
             self.source_badge.set("Windows 实测", "cyan")
             label = snap.total_label or "Windows Power Meter"
@@ -375,6 +390,7 @@ class TotalCard(Card):
                 fg=MUTED,
             )
         else:
+            self.title_label.configure(text="整机功耗")
             self.mode_badge.set("真实传感器", "cyan")
             self.source_badge.set("原生实测", "cyan")
             label = snap.total_label or "总功耗传感器"
@@ -653,7 +669,7 @@ class BatteryCard(Card):
             self.runtime_value.configure(text="—", fg=DIM)
             self.state_badge.set("未检测到", "muted")
             self.meta_label.configure(text=bat.reason or "未检测到电池", fg=MUTED)
-            self.sub_label.configure(text="整机功耗无法由电池测量。" if bat.ac_online else "")
+            self.sub_label.configure(text="电池无法测量插电输入功率。" if bat.ac_online else "")
             self.bar.set(None)
             return
         percent = bat.percent
@@ -1096,7 +1112,7 @@ class ChartCard(Card):
         ).pack(side="left", padx=(theme.s(8), 0), pady=(theme.s(1), 0))
         legend = tk.Frame(head, bg=CARD)
         legend.pack(side="right")
-        for text, color in (("整机", CYAN), ("CPU", GREEN), ("GPU", PURPLE)):
+        for text, color in (("合计", CYAN), ("CPU", GREEN), ("GPU", PURPLE)):
             dot = tk.Canvas(
                 legend,
                 width=theme.s(7),

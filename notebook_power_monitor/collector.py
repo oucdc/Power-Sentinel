@@ -1,9 +1,9 @@
 """Collector that merges the native Windows sources into immutable snapshots.
 
-HWiNFO integration has been removed.  CPU power comes from Windows RAPL, GPU
-power from NVIDIA NVML, battery data from WMI/ACPI, and total power only from
-Windows Power Meter or measured battery discharge.  There is no CPU+GPU sum
-fallback.
+CPU power comes from Windows RAPL, GPU power from NVIDIA NVML, battery data from
+WMI/ACPI, and total power from measured battery discharge on DC or the explicit
+CPU+GPU dual-load sum on AC.  The AC sum is labelled as calculated and is never
+presented as wall input power.
 """
 
 from __future__ import annotations
@@ -104,6 +104,7 @@ class MonitoringEngine:
                     total_w=None,
                     total_source="",
                     total_reason=f"采集异常：{type(exc).__name__}: {exc}",
+                    total_kind="",
                     cpu=replace(
                         self._latest.cpu,
                         power_w=None,
@@ -251,6 +252,86 @@ class MonitoringEngine:
             power_detail=f"NVML 实测 {nvml_w:.2f} W",
         )
 
+    @staticmethod
+    def _select_total(
+        raw: BatteryRaw,
+        cpu_w: float | None,
+        gpu_w: float | None,
+        meter_w: float | None,
+    ) -> tuple[float | None, str, str, str, str]:
+        """Pick a total-power reading and label its provenance.
+
+        On battery, the measured discharge power remains authoritative.  On AC,
+        the requested dual-load total is CPU + GPU; it is explicitly marked as a
+        computed value and not as wall input power.  A real Windows Power Meter
+        reading is used if one of the component powers is unavailable.
+        """
+        if raw.discharging and raw.power_w is not None and raw.power_w > 0.05:
+            return (
+                raw.power_w,
+                "电池放电实测",
+                "电池端直流",
+                "电池放电功率实测，属于系统直流侧读数。",
+                "battery",
+            )
+
+        if (
+            raw.ac_online
+            and cpu_w is not None
+            and gpu_w is not None
+            and cpu_w > 0.05
+            and gpu_w > 0.05
+        ):
+            total = cpu_w + gpu_w
+            return (
+                total,
+                "CPU+GPU 合计",
+                "CPU+GPU 双烤合计",
+                "插电双烤合计：CPU + GPU，不含屏幕、内存、硬盘、风扇和供电损耗，不是墙插整机输入功率。",
+                "computed",
+            )
+
+        if meter_w is not None and meter_w > 0.05:
+            return (
+                meter_w,
+                "Windows Power Meter",
+                "EMI 整机功率",
+                "Windows Power Meter 硬件计数器，不是 CPU+GPU 求和。",
+                "meter",
+            )
+
+        if raw.ac_online:
+            return (
+                None,
+                "",
+                "",
+                "插电时 CPU 或 GPU 功耗不可用，无法计算双烤合计；Windows Power Meter 也没有读数。",
+                "",
+            )
+        if raw.discharging:
+            return (
+                None,
+                "",
+                "",
+                "电池正在放电，但驱动未报告可用的放电功率。",
+                "",
+            )
+        if not raw.ac_online and not raw.present:
+            return (
+                None,
+                "",
+                "",
+                "未检测到电池，且没有整机功耗传感器。",
+                "",
+            )
+        return (
+            None,
+            "",
+            "",
+            "没有可用的整机功耗传感器。",
+            "",
+        )
+
     def _build_snapshot(self) -> Snapshot:
         self._seq += 1
         now = time.time()
@@ -276,30 +357,9 @@ class MonitoringEngine:
         cpu = self._cpu_from_rapl(rapl_w, rapl_status, bg.active_pct)
         gpu = self._gpu_from_nvml(nvml_state, nvml_age, nvml_status)
 
-        total_w: float | None = None
-        total_source = ""
-        total_reason = ""
-        total_label = ""
-        if meter_w is not None and meter_w > 0.05:
-            total_w = meter_w
-            total_source = "Windows Power Meter"
-            total_label = "EMI 整机功率"
-        elif raw.discharging and raw.power_w is not None and raw.power_w > 0.05:
-            total_w = raw.power_w
-            total_source = "电池放电实测"
-            total_label = "电池端直流"
-        else:
-            if raw.ac_online:
-                total_reason = (
-                    "插电状态：Windows Power Meter 无读数；本机没有其他真实整机功耗传感器。"
-                    "电池无法测量整机输入功率，不使用 CPU+GPU 求和。"
-                )
-            elif raw.discharging:
-                total_reason = "电池正在放电，但驱动未报告可用的放电功率。"
-            elif not raw.ac_online and not raw.present:
-                total_reason = "未检测到电池，且没有整机功耗传感器。"
-            else:
-                total_reason = "没有可用的整机功耗传感器（不使用 CPU+GPU 求和估算）。"
+        total_w, total_source, total_label, total_reason, total_kind = self._select_total(
+            raw, cpu.power_w, gpu.power_w, meter_w
+        )
 
         bg_status = SourceStatus(
             "processes",
@@ -341,6 +401,7 @@ class MonitoringEngine:
             total_source=total_source,
             total_reason=total_reason,
             total_label=total_label,
+            total_kind=total_kind,
             cpu=cpu,
             gpu=gpu,
             battery=battery,
@@ -414,6 +475,7 @@ class DemoEngine:
                 total_w=total,
                 total_source="演示数据",
                 total_label="演示",
+                total_kind="demo",
                 cpu=CpuInfo(
                     name="Intel Core Ultra 9 275HX",
                     power_w=cpu_w,

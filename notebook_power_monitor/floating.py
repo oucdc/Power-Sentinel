@@ -356,13 +356,14 @@ class FloatingBar:
         if stale:
             for index, (cap, value, _color) in enumerate(labels):
                 cap.configure(
-                    text=("整机", "CPU", "GPU", "电量", "续航")[index] + " · 中断", fg=RED
+                    text=("总功耗", "CPU", "GPU", "电量", "续航")[index] + " · 中断", fg=RED
                 )
                 value.configure(text="—", fg=DIM)
             return
+        total_caption = "双烤" if snap.total_kind == "computed" else "整机"
         total_text = "—" if snap.total_w is None else f"{fmt_power(snap.total_w, 1)} W"
         labels[0][0].configure(
-            text="整机" + ("" if snap.total_w is not None else " · 不可用"),
+            text=total_caption + ("" if snap.total_w is not None else " · 不可用"),
             fg=MUTED if snap.total_w is not None else AMBER,
         )
         labels[0][1].configure(text=total_text, fg=CYAN if snap.total_w is not None else DIM)

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 APP = ROOT / "dist" / "电量哨兵"
 DOCS = ROOT / "docs"
 RELEASE = ROOT / "release"
-ZIP = RELEASE / "电量哨兵-v1.0.2.zip"
+ZIP = RELEASE / "电量哨兵-v1.1.0.zip"
 
 if not (APP / "电量哨兵.exe").is_file():
     raise SystemExit(f"missing app: {APP / '电量哨兵.exe'}")

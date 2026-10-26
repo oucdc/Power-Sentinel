@@ -103,6 +103,7 @@ class Snapshot:
     total_source: str = ""
     total_reason: str = ""
     total_label: str = ""
+    total_kind: str = ""
     cpu: CpuInfo = field(default_factory=CpuInfo)
     gpu: GpuInfo = field(default_factory=GpuInfo)
     battery: BatteryInfo = field(default_factory=BatteryInfo)

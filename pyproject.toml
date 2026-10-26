@@ -45,6 +45,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pyinstaller>=6.10", "ruff>=0.9"]
 
+[project.urls]
+Homepage = "https://github.com/oucdc/Power-Sentinel"
+Issues = "https://github.com/oucdc/Power-Sentinel/issues"
+Changelog = "https://github.com/oucdc/Power-Sentinel/blob/main/CHANGELOG.md"
+
 [project.gui-scripts]
 notebook-power-monitor = "notebook_power_monitor.main:main"
 

@@ -2,13 +2,14 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+[![CI](https://github.com/oucdc/Power-Sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/oucdc/Power-Sentinel/actions/workflows/ci.yml)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 A native Windows tray app for monitoring laptop power, battery runtime and background CPU activity. The UI is in Simplified Chinese; the product name is **电量哨兵** (“Power Sentinel”).
 
-It is built around real hardware counters, not estimates: CPU power from Windows RAPL, GPU power and temperature from NVIDIA NVML, battery data from WMI/ACPI, and total system power only from Windows Power Meter or measured battery discharge.
+CPU power comes from Windows RAPL, GPU power and temperature from NVIDIA NVML, and battery data from WMI/ACPI. On battery, total power is the measured battery discharge. On AC, the total card shows the explicit **CPU+GPU dual-load sum**, labelled as a calculated value—not as wall input power.
 
 ![Dashboard](docs/images/dashboard.png)
 
@@ -16,6 +17,7 @@ It is built around real hardware counters, not estimates: CPU power from Windows
 
 - **CPU power** from Windows RAPL `Energy Meter(RAPL_Package0_PKG)`.
 - **GPU power, temperature and utilisation** from NVIDIA NVML (the same source NVIDIA App uses).
+- **Total power**: measured battery discharge on DC; CPU+GPU dual-load sum on AC, clearly marked as a calculated value.
 - **Battery runtime** from current remaining Wh and measured discharge power, not a percentage-only estimate.
 - **Background process activity** with `System Idle Process` and the foreground process excluded; every process is capped at 100%.
 - **Main window, always-on-top floating bar and system tray**.
@@ -36,7 +38,8 @@ Requirements: Windows 10/11, Python 3.10+ (64-bit), NVIDIA driver for GPU data. 
 the repository, then run from its root:
 
 ```powershell
-cd notebook-power-monitor
+git clone https://github.com/oucdc/Power-Sentinel.git
+cd Power-Sentinel
 py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
@@ -65,19 +68,19 @@ The onedir build is written to `dist\电量哨兵\`, and the release ZIP to `rel
 |---|---|---|
 | CPU power | Windows RAPL / PDH energy counter | Card shows **Unavailable** with the reason |
 | GPU power / temperature | NVIDIA NVML | Whole GPU card is unavailable while the dGPU sleeps |
-| Total system power | Windows Power Meter, or battery discharge on DC | **Unavailable**; never replaced by CPU+GPU sum |
+| Total power | AC: CPU+GPU dual-load sum (calculated); DC: measured battery discharge | **Unavailable** if a component power is missing and no Power Meter reading exists |
 | CPU temperature | No trustworthy native source | `—` |
 | GPU temperature | NVIDIA NVML | `—` |
 | Battery | WMI `root\wmi:BatteryStatus` + ACPI battery info | Percentage only; no fabricated power |
 | Background CPU | `GetSystemTimes` / `GetProcessTimes` | Activity unavailable, no invented values |
 
-### Why total power can be unavailable on AC
+### How total power is calculated
 
-Many laptops, including some gaming models, do not expose a total input-power sensor to Windows. Windows Power Meter may return 0. In that case there is no honest total-power reading while plugged in.
+**On battery**, the total is the **measured battery discharge** (DC-side), preserving the original behaviour.
 
-- On battery, total power uses the **measured battery discharge** (DC-side).
-- The app never sums CPU and GPU power: that would omit the display, memory, SSD, fans, VRMs and conversion losses.
-- A wall power meter is still the right tool for AC input power.
+**On AC**, the total is `CPU power + GPU power`, shown as **双烤功耗合计** and tagged **计算值** in the UI. This is a dual-load component sum: it excludes the display, memory, SSD, fans, VRMs and conversion losses, so it is not wall input power and should not be compared directly with a mains power meter.
+
+If either CPU or GPU power is unavailable on AC, the app falls back to a real Windows Power Meter reading if one exists; otherwise the total is explicitly unavailable.
 
 CPU temperature is intentionally absent. Windows does not expose a reliable package temperature through a native API, and the project does not want to display a plausible-looking but wrong value.
 
@@ -117,7 +120,7 @@ More detail: [docs/architecture.md](docs/architecture.md).
 ## Limitations
 
 - Windows only; the UI is currently Simplified Chinese.
-- AC total power requires a hardware sensor or a wall meter.
+- On AC, total power is a CPU+GPU calculated sum, not the wall input power; a wall meter is still needed for true mains input.
 - CPU temperature is not available from native sources.
 - Battery discharge power depends on firmware/WMI support.
 - The tool reports sensor values; it is not a calibrated laboratory power meter.

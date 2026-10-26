@@ -35,8 +35,9 @@ Win32 process times ┘
 
 ## Invariants
 
-1. **No fabricated power.** Total system power is only Windows Power Meter or measured battery
-   discharge. CPU+GPU is never presented as total power.
+1. **No unexplained power numbers.** On DC, total power is measured battery discharge. On AC, the
+   total is the CPU+GPU dual-load sum, explicitly tagged as a calculated value and not as wall input
+   power. If either component is missing, fall back to Windows Power Meter or show unavailable.
 2. **No stale GPU data.** A GPU sample older than 3.5 seconds, an NVML error, or a zero power reading
    makes the GPU card unavailable.
 3. **Background CPU is bounded.** PID 0 / `System Idle Process` and the foreground process are
